@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 체크 시: colorPrimary에 12% 알파(취향껏 8~16%로 조정) -->
+    <item android:state_checked="true"
+        android:color="@color/todocBlueColor"
+        android:alpha="0.12" />
+    <!-- 평상시: surface 배경 -->
+    <item android:color="@color/white"/>
+</selector>

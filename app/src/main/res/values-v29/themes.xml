@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Base.Theme.Todoc_ota_application" parent="Theme.Material3.Light.NoActionBar">
+        <!-- Customize your light theme here. -->
+        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="colorPrimaryDark">@color/backGroundColor</item>
+
+        <item name="android:statusBarColor">@color/backGroundColor</item>
+        <item name="android:navigationBarColor">@color/backGroundColor</item>
+
+        <!-- 아이콘 색 (밝은 배경이면 true, 어두운 배경이면 false) -->
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+
+        <!-- 대비 강제 오버레이 방지(안드 10+) -->
+        <item name="android:enforceStatusBarContrast">false</item>
+        <item name="android:enforceNavigationBarContrast">false</item>
+    </style>
+</resources>

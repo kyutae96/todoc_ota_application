@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/startupFragment">
+
+    <fragment
+        android:id="@+id/startupFragment"
+        android:name="com.todoc.todoc_ota_application.startup.StartupFragment"
+        android:label="Startup">
+        <action
+            android:id="@+id/action_startup_to_permission"
+            app:destination="@id/permissionFragment" />
+        <action
+            android:id="@+id/action_startup_to_login"
+            app:destination="@id/loginFragment" />
+        <action
+            android:id="@+id/action_startup_to_search"
+            app:destination="@id/bluetoothSearchFragment"
+            app:popUpTo="@id/startupFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/permissionFragment"
+        android:name="com.todoc.todoc_ota_application.feature.permission.PermissionFragment"
+        android:label="Permissions">
+        <action
+            android:id="@+id/action_permission_to_login"
+            app:destination="@id/loginFragment"
+            app:popUpTo="@id/permissionFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/loginFragment"
+        android:name="com.todoc.todoc_ota_application.feature.login.LoginFragment"
+        android:label="Login">
+        <action
+            android:id="@+id/action_login_to_search"
+            app:destination="@id/bluetoothSearchFragment"
+            app:popUpTo="@id/bluetoothSearchFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/bluetoothSearchFragment"
+        android:name="com.todoc.todoc_ota_application.feature.search.BluetoothSearchFragment"
+        android:label="Search">
+        <action
+            android:id="@+id/action_search_to_versionCheck"
+            app:destination="@id/versionCheckFragment"
+            app:popUpTo="@id/bluetoothSearchFragment"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_search_to_login"
+            app:destination="@id/loginFragment"
+            app:popUpTo="@id/bluetoothSearchFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+    <fragment
+        android:id="@+id/versionCheckFragment"
+        android:name="com.todoc.todoc_ota_application.feature.versionCheck.VersionCheckFragment"
+        android:label="Version">
+        <action
+            android:id="@+id/action_version_to_main"
+            app:destination="@id/mainFragment"
+            app:popUpTo="@id/versionCheckFragment"
+            app:popUpToInclusive="true" />
+
+        <action
+            android:id="@+id/action_version_to_auto"
+            app:destination="@id/autoFragment"
+            app:popUpTo="@id/versionCheckFragment"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_version_to_search"
+            app:destination="@id/bluetoothSearchFragment"
+            app:popUpTo="@id/versionCheckFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+    <fragment
+        android:id="@+id/autoFragment"
+        android:name="com.todoc.todoc_ota_application.feature.autoUpdate.AutoUpdateFragment"
+        android:label="Auto" >
+        <action
+            android:id="@+id/action_auto_to_version"
+            app:destination="@id/versionCheckFragment"
+            app:popUpTo="@id/autoFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+    <fragment
+        android:id="@+id/mainFragment"
+        android:name="com.todoc.todoc_ota_application.feature.main.MainFragment"
+        android:label="Main" >
+        <action
+            android:id="@+id/action_main_to_version"
+            app:destination="@id/versionCheckFragment"
+            app:popUpTo="@id/mainFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+</navigation>

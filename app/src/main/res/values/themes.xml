@@ -1,0 +1,15 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.Todoc_ota_application" parent="Theme.Material3.Light.NoActionBar">
+
+        <item name="android:statusBarColor">@color/backGroundColor</item>
+        <item name="android:navigationBarColor">@color/backGroundColor</item>
+
+        <!-- 아이콘 색 (밝은 배경이면 true, 어두운 배경이면 false) -->
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+
+    </style>
+
+    <style name="Theme.Todoc_ota_application" parent="Base.Theme.Todoc_ota_application" />
+</resources>

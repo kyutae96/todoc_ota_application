@@ -1,0 +1,35 @@
+package com.todoc.todoc_ota_application.data.ble
+
+import android.annotation.SuppressLint
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothGatt
+import android.bluetooth.BluetoothGattCallback
+import android.bluetooth.BluetoothProfile
+import android.bluetooth.le.BluetoothLeScanner
+import android.bluetooth.le.ScanCallback
+import android.bluetooth.le.ScanResult
+import android.content.Context
+import android.os.Bundle
+import android.view.View
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
+import com.todoc.todoc_ota_application.R
+import com.todoc.todoc_ota_application.core.model.AckResult
+
+import com.todoc.todoc_ota_application.feature.permission.PermissionHelper
+import com.todoc.todoc_ota_application.feature.login.data.LocalAuthRepository
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+import java.util.concurrent.ConcurrentHashMap
+
+sealed class PairingEvent {
+    data class Request(
+        val device: BluetoothDevice,
+        val variant: Int,     // BluetoothDevice.PAIRING_VARIANT_*
+        val passkey: Int?     // 일부 기기는 EXTRA_PAIRING_KEY 전달
+    ) : PairingEvent()
+    data object Cleared : PairingEvent()
+}

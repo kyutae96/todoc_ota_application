@@ -1,0 +1,29 @@
+<resources>
+    <string name="app_name">todoc_ota_application</string>
+
+
+    <string name="permission_header_txt">더 편리한 사용을 위해</string>
+    <string name="permission_second_txt">토닥 OTA 앱에서 사용하는\n권한을 허용해 주세요.</string>
+    <string name="permission_1_txt">
+    <b>근처 기기를 찾아 연결</b>하고\n기기 간 상대적 <b>위치를 파악</b>할 수 있어요.
+    </string>
+    <string name="permission_start_btn">시작하기</string>
+
+    <string name="info_initial">부여 받은 이니셜 값을 입력해주세요.</string>
+    <string name="regist_initial">등록하기</string>
+    <string name="hint_initial">이니셜</string>
+    <string name="error_initial">이니셜을 입력하세요.</string>
+    <string name="back_to_login">이니셜 재등록</string>
+
+
+    <string name="info_passkey">부여 받은 보안키 값을 입력해주세요.</string>
+    <string name="hint_passkey">보안키</string>
+    <string name="error_passkey">보안키를 입력하세요.</string>
+
+
+    <string name="error_invalid_email">이메일 형식 다름</string>
+    <string name="error_short_password">비밀번호는 최소 6글자</string>
+    <string name="error_required">입력이 필요합니다.</string>
+    <string name="msg_awaiting_approval">관리자가 계정 활성화 후 이용할 수 있습니다.</string>
+
+</resources>

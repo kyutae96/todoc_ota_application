@@ -1,0 +1,52 @@
+{
+    "name":  "Todoc OTA Docs",
+    "theme":  "mint",
+    "colors":  {
+                   "primary":  "#4f46e5"
+               },
+    "logo":  {
+                 "light":  "/favicon.ico",
+                 "dark":  "/favicon.ico"
+             },
+    "navigation":  {
+                       "languages":  [
+
+                                     ],
+                       "versions":  [
+
+                                    ],
+                       "tabs":  [
+
+                                ],
+                       "dropdowns":  [
+
+                                     ],
+                       "anchors":  true,
+                       "groups":  [
+                                      {
+                                          "group":  "Overview",
+                                          "pages":  [
+                                                        {
+                                                            "page":  "index",
+                                                            "path":  "/"
+                                                        }
+                                                    ]
+                                      },
+                                      {
+                                          "group":  "API Reference",
+                                          "pages":  [
+                                                        "reference/index"
+                                                    ]
+                                      }
+                                  ],
+                       "pages":  [
+                                     {
+                                         "page":  "index",
+                                         "path":  "/"
+                                     }
+                                 ]
+                   },
+    "search":  {
+                   "enabled":  true
+               }
+}

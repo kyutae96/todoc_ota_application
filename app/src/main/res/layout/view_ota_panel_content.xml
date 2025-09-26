@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        tools:background="@color/todocBlueColor"
+        android:orientation="vertical">
+        <LinearLayout
+            android:id="@+id/layoutManifest"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvHeaderManifest"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="start"
+                android:textColor="@color/white"
+                android:fontFamily="@font/pretendard_regular"
+                android:text="MFST"
+                android:textSize="14dp" />
+
+            <TextView
+                android:id="@+id/tvHeaderManifestSize"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="@font/pretendard_regular"
+                android:text="0"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="14dp"
+
+                tools:text="1048576" />
+
+            <TextView
+                android:id="@+id/tvHeaderManifestPercent"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="@font/pretendard_regular"
+                android:text="0%"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="14dp"
+                tools:text="100%" />
+
+
+        </LinearLayout>
+
+        <!-- Table APP000 -->
+        <LinearLayout
+            android:id="@+id/layoutApp0"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvHeaderApp0"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="@font/pretendard_regular"
+                android:text="APP0"
+                android:gravity="start"
+                android:textColor="@color/white"
+                android:textSize="14dp"
+                />
+
+            <TextView
+                android:id="@+id/tvHeaderApp0Size"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="@font/pretendard_regular"
+                android:text="0"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="14dp"
+
+                tools:text="1048576" />
+
+            <TextView
+                android:id="@+id/tvHeaderApp0Percent"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="@font/pretendard_regular"
+                android:text="0%"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="14dp"
+
+                tools:text="100%" />
+
+
+        </LinearLayout>
+
+        <!-- Table APP001 -->
+        <LinearLayout
+            android:id="@+id/layoutApp1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvHeaderApp1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="@font/pretendard_regular"
+                android:text="APP1"
+                android:gravity="start"
+                android:textColor="@color/white"
+                android:textSize="14dp"
+                />
+
+            <TextView
+                android:id="@+id/tvHeaderApp1Size"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="@font/pretendard_regular"
+                android:text="0"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="14dp"
+
+                tools:text="1048576" />
+
+            <TextView
+                android:id="@+id/tvHeaderApp1Percent"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="@font/pretendard_regular"
+                android:text="0%"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="14dp"
+
+                tools:text="100%" />
+
+
+        </LinearLayout>
+
+        <!-- Table APP002 -->
+        <LinearLayout
+            android:id="@+id/layoutApp2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvHeaderApp2"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="@font/pretendard_regular"
+                android:text="APP2"
+                android:gravity="start"
+                android:textColor="@color/white"
+                android:textSize="14dp"
+                />
+
+            <TextView
+                android:id="@+id/tvHeaderApp2Size"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="@font/pretendard_regular"
+                android:text="0"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="14dp"
+
+                tools:text="1048576" />
+
+            <TextView
+                android:id="@+id/tvHeaderApp2Percent"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="@font/pretendard_regular"
+                android:text="0%"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="14dp"
+
+                tools:text="100%" />
+
+
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

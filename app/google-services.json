@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "995016378087",
+    "project_id": "todoc-ota",
+    "storage_bucket": "todoc-ota.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:995016378087:android:0f6dacce5cc66e20cbc442",
+        "android_client_info": {
+          "package_name": "com.todoc.todoc_ota_application"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAioH5aUo19iEWtSyqrkm21scRLkI3nhts"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

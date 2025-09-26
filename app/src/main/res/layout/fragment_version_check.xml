@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/connHeader"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <ImageView
+                android:id="@+id/backToSearchBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="15dp"
+                android:rotation="180"
+                android:src="@drawable/ic_round_arrow_forward_ios_42"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <LinearLayout
+                android:id="@+id/scanBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="horizontal">
+
+                    <View
+                        android:id="@+id/viewStatusDot"
+                        android:layout_width="14dp"
+                        android:layout_height="14dp"
+                        android:layout_marginEnd="8dp"
+                        android:background="@drawable/status_dot" />
+
+                    <TextView
+                        android:id="@+id/tvDeviceName"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/pretendard_bold"
+                        android:text="연결 없음" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvDeviceSerial"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/pretendard_medium"
+                    android:text="#--------" />
+            </LinearLayout>
+
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+
+            android:layout_weight="1">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginTop="8dp"
+                android:gravity="center|top"
+                android:orientation="vertical">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="34dp"
+                    android:src="@drawable/download_ic" />
+
+                <TextView
+                    android:id="@+id/matchVersionTxt"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="34dp"
+                    android:fontFamily="@font/pretendard_medium"
+                    android:gravity="center"
+                    android:text="현재 기기가 최신상태가 아닙니다.\n업데이트를 진행하여 기기를 최신상태로 유지하세요."
+                    android:textColor="@color/black"
+                    android:textSize="14dp" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:minWidth="300dp"
+                    android:paddingVertical="12dp"
+                    android:layout_marginTop="18dp"
+                    android:background="@drawable/gray_rectangle"
+                    android:gravity="center">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/pretendard_medium"
+                        android:gravity="center"
+                        android:text="현재 버전"
+                        android:layout_marginEnd="18dp"
+                        android:textColor="@color/gray"
+                        android:textSize="14dp" />
+
+                    <TextView
+                        android:id="@+id/currentVersionTxt"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/pretendard_semibold"
+                        android:gravity="center"
+                        android:text="---"
+                        android:textColor="@color/black"
+                        android:textSize="14dp" />
+                </LinearLayout>
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginVertical="10dp"
+                    android:background="@drawable/baseline_arrow_downward_24"
+                    android:backgroundTint="@color/gray"/>
+                <LinearLayout
+                    android:id="@+id/updateLinearLayout"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:minWidth="300dp"
+                    android:paddingVertical="12dp"
+                    android:background="@drawable/gray_rectangle"
+                    android:gravity="center">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/pretendard_medium"
+                        android:gravity="center"
+                        android:text="업데이트 버전"
+                        android:layout_marginEnd="18dp"
+                        android:textColor="@color/gray"
+                        android:textSize="14dp" />
+
+                    <TextView
+                        android:id="@+id/latestVersionTxt"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/pretendard_semibold"
+                        android:gravity="center"
+                        android:text="---"
+                        android:textColor="@color/black"
+                        android:textSize="14dp" />
+                </LinearLayout>
+                <ProgressBar
+                    android:id="@+id/progressBar"
+                    android:layout_marginTop="18dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="18dp"
+                    android:layout_marginHorizontal="30dp"
+                    android:gravity="start"
+                    android:orientation="vertical">
+                    <TextView
+                        android:id="@+id/readmeTxt"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/pretendard_semibold"
+                        android:gravity="start"
+                        android:text="----"
+                        android:layout_marginEnd="18dp"
+                        android:textColor="@color/black"
+                        android:textSize="14dp" />
+
+                </LinearLayout>
+
+
+            </LinearLayout>
+        </ScrollView>
+        <Button
+            android:id="@+id/manualUpdateBtn"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:backgroundTint="@color/grayTextColor"
+            android:fontFamily="@font/pretendard_bold"
+            android:gravity="center"
+            android:text="수동 업데이트"
+            android:textColor="@color/white"
+            android:textSize="16dp" />
+        <Button
+            android:id="@+id/autoUpdateBtn"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:backgroundTint="@color/todocBlueColor"
+            android:fontFamily="@font/pretendard_bold"
+            android:gravity="center"
+            android:text="자동 업데이트"
+            android:textColor="@color/white"
+            android:textSize="16dp" />
+    </LinearLayout>
+</ScrollView>

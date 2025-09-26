@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="todocBlueColor">#0088FF</color>
+    <color name="todocBlueColor30">#b30088FF</color>
+    <color name="iconNoClick">#808080</color>
+    <color name="backGroundColor">#ffffff</color>
+    <color name="backGroundColor30">#b3f4f4f4</color>
+    <color name="lightGray">#F2F2F2</color>
+    <color name="grayTextColor">#CCCCCC</color>
+    <color name="grayCancelBtn">#E6E6E6</color>
+    <color name="grayCancelTxt">#B3B3B3</color>
+    <color name="bottomSheetColor">#F0F0F0</color>
+    <color name="deleteTxtColor">#FF3B30</color>
+    <color name="settingIconColor">#D9D9D9</color>
+
+
+    <color name="gray">#707070</color>
+    <color name="black_100">#FF000000</color>
+    <color name="black_90">#FF191919</color>
+    <color name="black_80">#FF333333</color>
+    <color name="black_70">#FF4C4C4C</color>
+    <color name="black_60">#FF666666</color>
+    <color name="black_50">#FF7F7F7F</color>
+    <color name="black_40">#FF999999</color>
+    <color name="black_30">#FFB2B2B2</color>
+    <color name="black_20">#FFCCCCCC</color>
+    <color name="black_10">#FFE5E5E5</color>
+
+    <color name="white_100">#FFFFFFFF</color>
+    <color name="white_90">#FFE5E5E5</color>
+    <color name="white_80">#FFCCCCCC</color>
+    <color name="white_70">#FFB2B2B2</color>
+    <color name="white_60">#FF999999</color>
+    <color name="white_50">#FF7F7F7F</color>
+    <color name="white_40">#FF666666</color>
+    <color name="white_30">#FF4C4C4C</color>
+    <color name="white_20">#FF333333</color>
+    <color name="white_10">#FF191919</color>
+
+    <color name="accent_100">#009688</color>
+    <color name="accent_90">#0F968A</color>
+    <color name="accent_80">#1E968B</color>
+    <color name="accent_70">#2D968D</color>
+    <color name="accent_60">#3C968E</color>
+    <color name="accent_50">#4B968F</color>
+    <color name="accent_40">#5A9691</color>
+    <color name="accent_30">#699692</color>
+    <color name="accent_20">#789694</color>
+    <color name="accent_10">#879695</color>
+
+    <color name="error_100">#EC407A</color>
+    <color name="error_90">#DA4074</color>
+    <color name="error_80">#C9406E</color>
+    <color name="error_70">#B84068</color>
+    <color name="error_60">#A74062</color>
+    <color name="error_50">#96405D</color>
+    <color name="error_40">#844057</color>
+    <color name="error_30">#734051</color>
+    <color name="error_20">#62404B</color>
+    <color name="error_10">#514045</color>
+
+    <color name="field_100">#FFF296</color>
+    <color name="field_90">#FFF4A0</color>
+    <color name="field_80">#FFF5A9</color>
+    <color name="field_70">#FFF6B2</color>
+    <color name="field_60">#FFF8BB</color>
+    <color name="field_50">#FFF9C4</color>
+    <color name="field_40">#FFFACE</color>
+    <color name="field_30">#FFFCD7</color>
+    <color name="field_20">#FFFDE0</color>
+    <color name="field_10">#FFFEE9</color>
+
+
+    <color name="switch_color">#FFC000</color>
+
+
+    <color name="password_background">#060606</color>
+    <color name="regist_background">#EDEDED</color>
+    <color name="regist_text">#535353</color>
+    <color name="regist_text_info">#274E00</color>
+    <color name="regist_border">#979797</color>
+
+    <color name="user_list_background_border">#95A9BC</color>
+
+
+    <color name="black">#000000</color>
+    <color name="white">#FFFFFF</color>
+
+    <color name="status_bar">@color/black_90</color>
+    <color name="toolbar_background">@color/black_80</color>
+    <color name="bottom_navigation">@color/black_90</color>
+
+
+    <color name="cochlea_battery_100">#00FCFC</color>
+    <color name="cochlea_battery_75">#F7FC12</color>
+    <color name="cochlea_battery_50">#FF8C06</color>
+    <color name="cochlea_battery_0">#FF0909</color>
+    <color name="red">#FF0909</color>
+    <color name="light_red">#DA6D6D</color>
+
+
+    <color name="cochlea_oval_background">#3D3F41</color>
+    <color name="black_background">#2D2E33</color>
+    <color name="black_card_background">#3D3F41</color>
+    <color name="green_card_dark_line">#346359</color>
+    <color name="green_card_light_line">#6AC9B5</color>
+
+    <color name="blue_card_next_btn">#55C7E0</color>
+
+    <color name="jetbrain_txt">#4DFF44</color>
+
+
+
+    <color name="select_box">#E6F2FF</color>
+
+
+</resources>
