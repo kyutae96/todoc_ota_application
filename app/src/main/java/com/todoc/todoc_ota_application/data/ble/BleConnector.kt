@@ -31,6 +31,7 @@ import androidx.lifecycle.viewModelScope
 import com.google.android.material.snackbar.Snackbar
 import com.todoc.todoc_ota_application.App
 import com.todoc.todoc_ota_application.core.model.BleResponse
+import com.todoc.todoc_ota_application.core.model.DetailedConnectionState
 import com.todoc.todoc_ota_application.core.model.ErrorResponse
 import com.todoc.todoc_ota_application.core.model.InfoResponse
 import com.todoc.todoc_ota_application.core.model.OtaCommandType
@@ -102,6 +103,9 @@ class BleConnector(private val context: Context) {
     private var gatt: BluetoothGatt? = null
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
+    private val _detailedConnection = MutableStateFlow<DetailedConnectionState>(DetailedConnectionState.Disconnected)
+    val detailedConnection: StateFlow<DetailedConnectionState> = _detailedConnection
+
     //    private val _otaFullProgress = MutableStateFlow<String?>(null)
 //    val otaFullProgress: StateFlow<String?> = _otaFullProgress
 //    fun onOtaFullResponse(result: String) {
@@ -109,7 +113,7 @@ class BleConnector(private val context: Context) {
 //    }
     private var commandTimeoutJob: Job? = null
     private val commandTimeoutMs: Long = 10_000
-
+    private var isGattConnected = false
 
     private val mPacketSendScope = CoroutineScope(Dispatchers.Main + Job())
 
@@ -229,6 +233,45 @@ class BleConnector(private val context: Context) {
         registerReceivers()
     }
 
+    private fun isGalaxyS24(): Boolean = Build.MODEL.lowercase().contains("sm-s24")
+    private fun isGalaxyNote(): Boolean = Build.MODEL.lowercase().contains("sm-n")
+
+    // 기기별 지연시간 계산
+    private fun getServiceDiscoveryDelay(serviceCount: Int): Long {
+        val baseDelay = when {
+            isGalaxyS24() -> 2000L      // S24는 서비스 많아서 오래 걸림
+            isGalaxyNote() -> 1000L     // Note는 서비스 적어서 빠름
+            else -> 1500L               // 기본값
+        }
+
+        // 서비스 개수에 따른 추가 지연
+        val serviceBonus = when {
+            serviceCount > 15 -> 800L   // S24급
+            serviceCount > 10 -> 400L   // 중간급
+            serviceCount > 5 -> 200L    // 구형
+            else -> 0L
+        }
+
+        val totalDelay = baseDelay + serviceBonus
+        Log.d(TAG, "서비스 개수: $serviceCount, 총 지연시간: ${totalDelay}ms")
+        return totalDelay.coerceAtMost(3000L)
+    }
+
+    private fun getDescriptorDelay(): Long = when {
+        isGalaxyS24() -> 500L       // S24는 CCCD 빠름
+        isGalaxyNote() -> 800L      // Note는 CCCD 느림
+        else -> 600L                // 기본값
+    }
+
+    private fun getWriteDelay(): Long = when {
+        isGalaxyS24() -> 80L        // S24는 쓰기 빠름
+        isGalaxyNote() -> 100L      // Note는 쓰기 느림
+        else -> 90L                 // 기본값
+    }
+
+
+
+
     fun close() {
         unregisterReceivers()
         disconnect()
@@ -242,16 +285,27 @@ class BleConnector(private val context: Context) {
             Log.e(TAG, "Classic-only device → skip LE connect")
             return
         }
-        Log.w(TAG, "will be connect to : ${device.name}")
+        _detailedConnection.value = DetailedConnectionState.Connecting
+        Log.w(TAG, "연결 시작: ${device.name} (${device.address})")
+        Log.d(TAG, "기기 타입: ${device.type}")
+        Log.d(TAG, "현재 본딩 상태: ${device.bondState}")
         _connection.value = ConnectionState.Connecting
         _services.value = ServiceState.Idle
         clearOtaHandles()
         gatt?.close(); gatt = null
-
+        scope.launch {
+            delay(5000L)
+            checkConnectionStatus()
+        }
         val mGaiaGattCallback = object : BluetoothGattCallback() {
             override fun onConnectionStateChange(g: BluetoothGatt, status: Int, newState: Int) {
                 super.onConnectionStateChange(g, status, newState)
+                isGattConnected = (newState == BluetoothProfile.STATE_CONNECTED)
+
+
                 if (status != BluetoothGatt.GATT_SUCCESS && newState != BluetoothProfile.STATE_CONNECTED) {
+                    Log.e(TAG, "연결 실패: status=$status")
+                    isGattConnected = false
                     _connection.value = ConnectionState.Disconnected
                     g.close()
                     return
@@ -259,6 +313,8 @@ class BleConnector(private val context: Context) {
                 when (newState) {
                     BluetoothProfile.STATE_CONNECTED -> {
                         Log.d(TAG, "STATE_CONNECTED")
+                        _detailedConnection.value = DetailedConnectionState.Connected
+                        isGattConnected = true
                         if (Build.VERSION.SDK_INT >= 21) {
                             g.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_HIGH)
                         }
@@ -271,24 +327,61 @@ class BleConnector(private val context: Context) {
                         }
 
 //                        g.discoverServices()
-
-
-                        if (g.device.bondState == BluetoothDevice.BOND_BONDED) {
-                            Log.d(TAG, "본딩 성공.")
-
-                            if (!g.discoverServices()) {
-                                Log.d(TAG, "onConnectionStateChange : Failed to discover services.")
-                                g.disconnect()
+// 본딩 상태에 따른 처리
+                        when (g.device.bondState) {
+                            BluetoothDevice.BOND_BONDED -> {
+                                Log.d(TAG, "이미 본딩된 기기 - 서비스 발견 시작")
+                                // 연결 안정화 후 서비스 발견
+                                scope.launch {
+                                    delay(800L) // 연결 안정화 대기
+                                    if (isGattConnected) {
+                                        if (!g.discoverServices()) {
+                                            Log.e(TAG, "서비스 발견 시작 실패")
+                                            g.disconnect()
+                                        }
+                                    }
+                                }
                             }
-                        } else {
-                            Log.d(TAG, "본딩을 시도합니다.")
-                            g.device.createBond()   // createbond를 하면 클래식도 같이 연결됨
+                            BluetoothDevice.BOND_NONE -> {
+                                Log.d(TAG, "본딩되지 않은 기기 - 본딩 시도")
+                                val bondResult = g.device.createBond()
+                                Log.d(TAG, "본딩 시도 결과: $bondResult")
+
+                                // 본딩 타임아웃 설정 (10초)
+                                scope.launch {
+                                    delay(10_000L)
+                                    if (g.device.bondState == BluetoothDevice.BOND_NONE && isGattConnected) {
+                                        Log.e(TAG, "본딩 타임아웃 - 서비스 발견 직접 시도")
+                                        if (!g.discoverServices()) {
+                                            Log.e(TAG, "서비스 발견 시작 실패")
+                                            g.disconnect()
+                                        }
+                                    }
+                                }
+                            }
+                            BluetoothDevice.BOND_BONDING -> {
+                                Log.d(TAG, "본딩 진행 중 - 대기")
+                            }
                         }
+
+//                        if (g.device.bondState == BluetoothDevice.BOND_BONDED) {
+//                            Log.d(TAG, "본딩 성공.")
+//
+//                            if (!g.discoverServices()) {
+//                                Log.d(TAG, "onConnectionStateChange : Failed to discover services.")
+//                                g.disconnect()
+//                            }
+//                        } else {
+//                            Log.d(TAG, "본딩을 시도합니다.")
+//                            g.device.createBond()   // createbond를 하면 클래식도 같이 연결됨
+//                        }
 
                     }
 
                     BluetoothProfile.STATE_DISCONNECTED -> {
+                        _detailedConnection.value = DetailedConnectionState.Disconnected
                         Log.d(TAG, "STATE_DISCONNECTED")
+                        isGattConnected = false
                         _connection.value = ConnectionState.Disconnected
                         _bond.value = BondState.None
                         _services.value = ServiceState.Idle
@@ -309,6 +402,11 @@ class BleConnector(private val context: Context) {
                 Log.d(TAG, "Android Version: ${Build.VERSION.SDK_INT}")
                 Log.d(TAG, "Device Model: ${Build.MODEL}")
                 Log.d(TAG, "Total services found: ${g.services.size}")
+                _detailedConnection.value = DetailedConnectionState.ServiceDiscovered
+                // 서비스 목록 로깅 (디버깅용)
+                g.services.forEachIndexed { index, service ->
+                    Log.d(TAG, "서비스 $index: ${service.uuid}")
+                }
 
                 // ---- Find OTA service & chars
                 val svc = g.getService(OtaGattSpec.QUALCOMM_UUID)
@@ -326,8 +424,6 @@ class BleConnector(private val context: Context) {
                 otaTx = tx
                 otaRx = rx
 
-                ///
-
                 val props = rx!!.properties
                 val supportsNotify = props and BluetoothGattCharacteristic.PROPERTY_NOTIFY != 0
                 val supportsIndicate = props and BluetoothGattCharacteristic.PROPERTY_INDICATE != 0
@@ -338,7 +434,6 @@ class BleConnector(private val context: Context) {
                 }
 
                 val cccd = rx.getDescriptor(OtaGattSpec.CCCD)
-
                 otaRxCccd = cccd
 
                 if (otaRxCccd == null) {
@@ -358,39 +453,26 @@ class BleConnector(private val context: Context) {
                     _services.value = ServiceState.Failed(-2)
                     return
                 }
+
+                val serviceDiscoveryDelay = getServiceDiscoveryDelay(g.services.size)
+                val descriptorDelay = getDescriptorDelay()
+                Log.d(TAG, "serviceDiscoveryDelay : $serviceDiscoveryDelay")
+                Log.d(TAG, "descriptorDelay : $descriptorDelay")
+
+
                 CoroutineScope(Dispatchers.Main).launch {
+                    // 서비스 발견 후 안정화 대기
+                    delay(serviceDiscoveryDelay)
+
                     cccd?.value = BluetoothGattDescriptor.ENABLE_INDICATION_VALUE
 
-                    delay(300)
+                    // CCCD 쓰기 전 기기별 지연
+                    delay(descriptorDelay)
+
                     val secondResult = g?.writeDescriptor(cccd)
                     Log.d(TAG, "ServerToClient descriptor 설정 결과: $secondResult")
                 }
 
-
-//                // ---- Enable notifications on RX
-//                val notifOk = enableNotificationsInternal(g, rx, cccd)
-//                if (!notifOk) {
-//                    Log.d(TAG, "noti null")
-//                    _connection.value = ConnectionState.Disconnected
-//                    _services.value = ServiceState.Failed(-2)
-//                    return
-//                }
-//                Log.d(TAG, "noti pass")
-
-                // Ready (참고용 MTU: 네고 안 했으면 보통 23)
-//                _services.value = ServiceState.Ready(23)
-
-//                for (service in g.services) {
-//                    val serviceUuid = service.uuid
-//                    Log.i(TAG, "gattService : $serviceUuid")
-//
-//                    val characArray = arrayListOf<String>()
-//                    for (characteristic in service.characteristics) {
-//                        val characUuid = characteristic.uuid
-//                        Log.i(TAG, "gattServiceCharac : $characUuid")
-//                        characArray.add(characUuid.toString())
-//                    }
-//                }
 
             }
 
@@ -1021,15 +1103,37 @@ class BleConnector(private val context: Context) {
                 if (d.uuid != OtaGattSpec.CCCD || otaRxCccd == null || d.characteristic?.uuid != otaRx?.uuid) return
 
                 if (status == BluetoothGatt.GATT_SUCCESS) {
+                    _detailedConnection.value = DetailedConnectionState.NotificationEnabled
                     Log.d(TAG, "CCCD enable OK → 시작: 패스키 타임아웃 + 패스키 패킷 전송")
                     _connection.value = ConnectionState.Connected(g.device)  // -> 실제로는 지워야함 현재 테스트 용도
-
-                    val stabilizationDelay =
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                            500L
-                        } else {
-                            50L
+                    val stabilizationDelay = when {
+                        Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> {
+                            if (isGalaxyS24()){
+                                Log.d(TAG, "${Build.VERSION.SDK_INT}SDK isGalaxyS24")
+                                800L
+                            } else{
+                                Log.d(TAG, "${Build.VERSION.SDK_INT}SDK not GalaxyS24")
+                                600L
+                            }  // S24는 더 긴 안정화 시간
                         }
+                        else -> {
+                            if (isGalaxyNote()){
+                                Log.d(TAG, "${Build.VERSION.SDK_INT}SDK isGalaxyNote")
+                                400L
+                            } else{
+                                Log.d(TAG, "${Build.VERSION.SDK_INT}SDK not isGalaxyNote")
+                                300L
+                            }  // Note는 상대적으로 짧음
+                        }
+                    }
+
+//
+//                    val stabilizationDelay =
+//                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+//                            500L
+//                        } else {
+//                            50L
+//                        }
 
                     // ===== 타임아웃 스타트 =====
 //                    startPasswordTimeout {
@@ -1040,21 +1144,43 @@ class BleConnector(private val context: Context) {
                     // ===== 패스키 생성 & 전송 =====
                     scope.launch {
                         delay(stabilizationDelay)
+                        _detailedConnection.value = DetailedConnectionState.FullyReady
                         val key = passkeyProvider?.invoke()
                         if (key == null || key.isEmpty()) {
                             Log.e(TAG, "passkeyProvider가 null/empty를 반환. 인증 스킵.")
                             cancelPasswordTimeout()
                             return@launch
                         }
-                        val packet =
-                            buildPasswordPacket?.invoke(key) ?: key.toByteArray()
-                        val ok = writeOta(packet)
-                        Log.d(TAG, "send password packet result=$ok, len=${packet.size}")
+                        val packet = buildPasswordPacket?.invoke(key) ?: key.toByteArray()
+                        // 재시도 로직 추가
+                        var retryCount = 0
+                        val maxRetries = if (isGalaxyS24()) 5 else 3
 
-                        if (!ok) {
-                            cancelPasswordTimeout()
-                            disconnect()
+                        while (retryCount < maxRetries) {
+                            val ok = writeOta(packet)
+                            if (ok) {
+                                Log.d(TAG, "send password packet result=OK, retry=$retryCount")
+                                break
+                            } else {
+                                retryCount++
+                                if (retryCount < maxRetries) {
+                                    Log.w(TAG, "패스키 전송 실패 - 재시도 $retryCount/$maxRetries")
+                                    delay(200L * retryCount) // 점진적 대기
+                                } else {
+                                    Log.e(TAG, "패스키 전송 최종 실패")
+                                    cancelPasswordTimeout()
+                                    disconnect()
+                                }
+                            }
                         }
+
+//                        val ok = writeOta(packet)
+//                        Log.d(TAG, "send password packet result=$ok, len=${packet.size}")
+//
+//                        if (!ok) {
+//                            cancelPasswordTimeout()
+//                            disconnect()
+//                        }
                     }
                 } else {
                     Log.e(TAG, "CCCD write failed (status=$status)")
@@ -1096,33 +1222,39 @@ class BleConnector(private val context: Context) {
     /** TX 특성에 쓰기 (payload는 maxPayload() 이하로 보낼 것) */
     @SuppressLint("MissingPermission")
     suspend fun writeOta(payload: ByteArray, noResponse: Boolean = true): Boolean {
-//        delay(100L)
+        // 기기별 쓰기 지연 추가
+        val writeDelay = getWriteDelay()
+        delay(writeDelay)
 
-        Log.w(TAG, "gatt not exist")
         val g = gatt ?: return false
-        Log.w(TAG, "gatt exist")
         val tx = otaTx ?: return false
-        Log.w(TAG, "tx exist")
         if (payload.isEmpty()) return true
+
         Log.w(TAG, "payload : ${printLogBytesToString(payload)}")
 
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            val rc =
-                g.writeCharacteristic(tx, payload, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT)
+            val rc = g.writeCharacteristic(tx, payload, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT)
             when (rc) {
                 BluetoothStatusCodes.SUCCESS -> {
-                    Log.i(
-                        TAG,
-                        "[writeOta] enqueue OK (API33+). 최종 결과는 onCharacteristicWrite()에서 확인 필요"
-                    )
+                    Log.i(TAG, "[writeOta] enqueue OK (API33+)")
                     true
                 }
+                BluetoothStatusCodes.ERROR_GATT_WRITE_REQUEST_BUSY -> {
+                    // S24에서 자주 발생하는 BUSY 상태 재시도
+                    Log.w(TAG, "[writeOta] BUSY - 재시도")
+                    delay(150L)
+                    val retryRc = g.writeCharacteristic(tx, payload, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT)
+                    if (retryRc == BluetoothStatusCodes.SUCCESS) {
+                        Log.i(TAG, "[writeOta] 재시도 성공")
+                        true
+                    } else {
+                        Log.e(TAG, "[writeOta] 재시도 실패 rc=$retryRc")
+                        onErrorResponse((18 and 0xFF).toByte(), (retryRc and 0xFF).toByte(), "[writeOta] 재시도 실패")
+                        false
+                    }
+                }
                 else -> {
-                    onErrorResponse(
-                        (18  and 0xFF).toByte(),
-                        (18  and 0xFF).toByte(),
-                        "[writeOta] enqueue FAIL"
-                    )
+                    onErrorResponse((18 and 0xFF).toByte(), (rc and 0xFF).toByte(), "[writeOta] enqueue FAIL")
                     Log.e(TAG, "[writeOta] enqueue FAIL (API33+) rc=$rc (${statusToString(rc)})")
                     false
                 }
@@ -1132,18 +1264,15 @@ class BleConnector(private val context: Context) {
             tx.writeType = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
             val ok = g.writeCharacteristic(tx)
             if (!ok) {
-                Log.e(TAG, "[writeOta] enqueue FAIL (<33). 보통 '바쁨' 또는 '잘못된 상태/프로퍼티'")
-                onErrorResponse(
-                    (18  and 0xFF).toByte(),
-                    (18  and 0xFF).toByte(),
-                    "[writeOta] enqueue FAIL"
-                )
+                Log.e(TAG, "[writeOta] enqueue FAIL (<33)")
+                onErrorResponse((18 and 0xFF).toByte(), (18 and 0xFF).toByte(), "[writeOta] enqueue FAIL")
             } else {
-                Log.i(TAG, "[writeOta] enqueue OK (<33). 최종 결과는 onCharacteristicWrite()에서 확인")
+                Log.i(TAG, "[writeOta] enqueue OK (<33)")
             }
             ok
         }
     }
+
 
     /** RX 알림 스트림: dev→app 수신 바이트 */
     fun notifications(): SharedFlow<ByteArray> = rx
@@ -1245,18 +1374,91 @@ class BleConnector(private val context: Context) {
         @SuppressLint("MissingPermission")
         override fun onReceive(c: Context, intent: Intent) {
             val action = intent.action
-            Log.d(TAG, "액션을 수신했습니다. -> $action")
+            Log.d(TAG, "브로드캐스트 수신: $action")
+
             when (action) {
                 BluetoothDevice.ACTION_BOND_STATE_CHANGED -> {
                     val device: BluetoothDevice =
-                        intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)!!
-                    Log.d(TAG, "device state. -> {${device.bondState}}")
+                        intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE) ?: return
+                    val bondState = intent.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE, BluetoothDevice.BOND_NONE)
+                    val prevBondState = intent.getIntExtra(BluetoothDevice.EXTRA_PREVIOUS_BOND_STATE, BluetoothDevice.BOND_NONE)
+
+                    Log.d(TAG, "본딩 상태 변경: ${device.address}, $prevBondState -> $bondState")
+
+                    // 현재 연결 중인 기기와 같은 기기인지 확인
+                    val currentGatt = gatt
+                    if (currentGatt?.device?.address == device.address) {
+                        when (bondState) {
+                            BluetoothDevice.BOND_BONDED -> {
+                                Log.d(TAG, "본딩 완료 - 서비스 발견 시작")
+                                _bond.value = BondState.Bonded
+
+                                // 본딩 완료 후 서비스 발견
+                                scope.launch {
+                                    delay(500L) // 본딩 완료 후 안정화
+                                    if (isGattConnected) {
+                                        if (!currentGatt!!.discoverServices()) {
+                                            Log.e(TAG, "서비스 발견 시작 실패")
+                                            currentGatt.disconnect()
+                                        }
+                                    }
+                                }
+                            }
+                            BluetoothDevice.BOND_NONE -> {
+                                Log.w(TAG, "본딩 실패 또는 해제")
+                                _bond.value = BondState.None
+
+                                // 본딩 실패 시 서비스 발견 직접 시도
+                                if (isGattConnected) {
+                                    Log.d(TAG, "본딩 없이 서비스 발견 시도")
+                                    scope.launch {
+                                        delay(1000L)
+                                        if (!currentGatt!!.discoverServices()) {
+                                            Log.e(TAG, "서비스 발견 실패 - 연결 해제")
+                                            currentGatt.disconnect()
+                                        }
+                                    }
+                                }
+                            }
+                            BluetoothDevice.BOND_BONDING -> {
+                                Log.d(TAG, "본딩 진행 중")
+                                _bond.value = BondState.Bonding
+                            }
+                        }
+                    }
+                }
+
+                BluetoothDevice.ACTION_PAIRING_REQUEST -> {
+                    val device: BluetoothDevice =
+                        intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE) ?: return
+                    Log.d(TAG, "페어링 요청: ${device.address}")
+
+                    // 자동 페어링 승인 (필요한 경우)
+                    // device.setPairingConfirmation(true)
                 }
             }
-
         }
     }
+    // 3. 연결 상태 확인용 헬퍼 함수 추가
+    @SuppressLint("MissingPermission")
+    private fun checkConnectionStatus() {
+        val currentGatt = gatt
+        if (currentGatt != null) {
+            Log.d(TAG, "=== 연결 상태 체크 ===")
+            Log.d(TAG, "GATT 연결 상태: $isGattConnected")
+            Log.d(TAG, "기기 본딩 상태: ${currentGatt.device.bondState}")
+            Log.d(TAG, "서비스 개수: ${currentGatt.services.size}")
 
+            // 연결되어 있지만 서비스가 없는 경우 서비스 발견 재시도
+            if (isGattConnected && currentGatt.services.isEmpty()) {
+                Log.w(TAG, "연결되어 있지만 서비스가 없음 - 서비스 발견 재시도")
+                scope.launch {
+                    delay(1000L)
+                    currentGatt.discoverServices()
+                }
+            }
+        }
+    }
     //C0 start command write
     suspend fun sendStartCommandByBle(): Boolean {
         val packet = packetMaker(HEADER_START_COMMAND, null, 1)

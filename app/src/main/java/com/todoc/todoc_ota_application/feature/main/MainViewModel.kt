@@ -96,6 +96,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     val otaFileProgress = connector.otaFileProgress
     val bleResponseFlow = connector.bleResponseFlow
     val errorResponseFlow = connector.errorResponseFlow
+    val detailedConnection = connector.detailedConnection
 //    val otaFullProgress = connector.otaFullProgress
 
     val infoState = connector.infoState

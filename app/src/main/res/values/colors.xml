@@ -13,7 +13,7 @@
     <color name="deleteTxtColor">#FF3B30</color>
     <color name="settingIconColor">#D9D9D9</color>
 
-
+    <color name="black_transparent_80">#CC000000</color>
     <color name="gray">#707070</color>
     <color name="black_100">#FF000000</color>
     <color name="black_90">#FF191919</color>

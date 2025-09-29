@@ -26,6 +26,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.todoc.todoc_ota_application.R
+import com.todoc.todoc_ota_application.core.model.DetailedConnectionState
 import com.todoc.todoc_ota_application.data.ble.ConnectionState
 import com.todoc.todoc_ota_application.data.ble.ScanningState
 import com.todoc.todoc_ota_application.feature.login.LoginViewModel
@@ -34,6 +35,7 @@ import com.todoc.todoc_ota_application.feature.login.data.FirebaseAuthRepository
 import com.todoc.todoc_ota_application.feature.login.data.LocalAuthRepository
 import com.todoc.todoc_ota_application.feature.main.MainFragment
 import com.todoc.todoc_ota_application.feature.main.MainViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -45,24 +47,35 @@ class BluetoothSearchFragment : Fragment(R.layout.fragment_bluetooth_serarch) {
         val repo = FirebaseAuthRepository(requireContext())
         ViewModelProvider(this, LoginViewModelFactory(repo))[LoginViewModel::class.java]
     }
+
+    // 기존 뷰들
     private lateinit var tvStatus: TextView
     private lateinit var pbScan: ProgressBar
     private lateinit var btnRefresh: TextView
     private lateinit var backToLoginBtn: ImageView
     private lateinit var rv: RecyclerView
-
     private lateinit var tilKey: TextInputLayout
     private lateinit var etKey: TextInputEditText
     private lateinit var btnConnect: Button
 
+    // 전체화면 로딩 UI
+    private lateinit var loadingOverlay: View
+    private lateinit var loadingProgressBar: ProgressBar
+    private lateinit var loadingStatusText: TextView
+    private lateinit var loadingDeviceName: TextView
+    private lateinit var loadingCancelBtn: Button
+
     private val adapter = DeviceListAdapter { item ->
-        selectedItem = item
-        updateConnectEnabled()
+        if (!isConnecting) {
+            selectedItem = item
+            updateConnectEnabled()
+        }
     }
 
     private var selectedItem: MainFragment.DeviceItem? = null
-    private var hasNavigated = false   // 중복 popBackStack 방지
-    private var isConnecting = false   // 버튼 중복 클릭 방지
+    private var hasNavigated = false
+    private var isConnecting = false
+
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         bindViews(view)
@@ -70,28 +83,42 @@ class BluetoothSearchFragment : Fragment(R.layout.fragment_bluetooth_serarch) {
         bindButtons()
         collectFlows()
     }
-
+    private fun bindRecycler() {
+        rv.layoutManager = LinearLayoutManager(requireContext())
+        rv.adapter = adapter
+    }
     private fun bindViews(v: View) {
+        // 기존 뷰들
         tvStatus   = v.findViewById(R.id.tvStatus)
         pbScan     = v.findViewById(R.id.pbScan)
         btnRefresh = v.findViewById(R.id.btnRefresh)
         backToLoginBtn = v.findViewById(R.id.backToLoginBtn)
         rv         = v.findViewById(R.id.rvDevices)
-
         tilKey      = v.findViewById(R.id.tilKey)
         etKey       = v.findViewById(R.id.etKey)
         btnConnect  = v.findViewById(R.id.btnConnect)
 
-    }
+        // 전체화면 로딩 오버레이
+        loadingOverlay = v.findViewById(R.id.loadingOverlay)
+        loadingProgressBar = v.findViewById(R.id.loadingProgressBar)
+        loadingStatusText = v.findViewById(R.id.loadingStatusText)
+        loadingDeviceName = v.findViewById(R.id.loadingDeviceName)
+        loadingCancelBtn = v.findViewById(R.id.loadingCancelBtn)
 
-    private fun bindRecycler() {
-        rv.layoutManager = LinearLayoutManager(requireContext())
-        rv.adapter = adapter
+        // 취소 버튼 클릭
+        loadingCancelBtn.setOnClickListener {
+            cancelConnection()
+        }
     }
 
     private fun bindButtons() {
         val nav = findNavController()
         backToLoginBtn.setOnClickListener {
+            if (isConnecting) {
+                Toast.makeText(requireContext(), "연결 진행 중입니다. 취소 후 다시 시도하세요.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
             lifecycleScope.launch {
                 vm.justDisconnect()
                 val repo = LocalAuthRepository(requireContext())
@@ -99,12 +126,16 @@ class BluetoothSearchFragment : Fragment(R.layout.fragment_bluetooth_serarch) {
                 viewModel.logout()
                 nav.navigate(R.id.action_search_to_login)
             }
+        }
 
-        }
         btnRefresh.setOnClickListener {
-            startScan()
+            if (!isConnecting) {
+                startScan()
+            }
         }
+
         btnConnect.setOnClickListener {
+            if (isConnecting) return@setOnClickListener
 
             val item = selectedItem ?: return@setOnClickListener
             val key  = etKey.text?.toString()?.trim().orEmpty()
@@ -115,29 +146,95 @@ class BluetoothSearchFragment : Fragment(R.layout.fragment_bluetooth_serarch) {
             }
             tilKey.error = null
 
-            // address로 ScanResult 재조회 후 connect
-            viewLifecycleOwner.lifecycleScope.launch {
-
-                LocalAuthRepository(requireContext()).savePasskey(key)
-                val target = vm.devices.value.firstOrNull { it.device.address == item.address }
-                if (target == null) {
-                    Toast.makeText(requireContext(), "장치가 목록에 없습니다. 다시 스캔하세요.", Toast.LENGTH_SHORT).show()
-                    return@launch
-                }
-                Toast.makeText(requireContext(), "연결 시도 중…", Toast.LENGTH_SHORT).show()
-
-                vm.connectTo(target)
-//                findNavController().popBackStack() // 성공/실패는 메인 화면에서 상태로 노출
-            }
+            startConnection(item, key)
         }
 
-        // 입력 바뀔 때 버튼 활성/비활성
         etKey.addTextChangedListener {
             updateConnectEnabled()
         }
     }
 
+    private fun startConnection(item: MainFragment.DeviceItem, key: String) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            // 전체화면 로딩 시작
+            showLoadingOverlay(item.name, "연결 준비 중...")
+
+            LocalAuthRepository(requireContext()).savePasskey(key)
+
+            val target = vm.devices.value.firstOrNull { it.device.address == item.address }
+            if (target == null) {
+                hideLoadingOverlay()
+                Toast.makeText(requireContext(), "장치가 목록에 없습니다. 다시 스캔하세요.", Toast.LENGTH_SHORT).show()
+                return@launch
+            }
+
+            vm.connectTo(target)
+        }
+    }
+    private fun updateLoadingStatus(status: String, step: Int = 1) {
+        if (isConnecting) {
+            loadingStatusText.text = status
+            // 진행률 표시 업데이트
+            updateProgressSteps(step)
+        }
+    }
+
+    private fun updateProgressSteps(currentStep: Int) {
+        val progressViews = listOf(
+            view?.findViewById<View>(R.id.progress1),
+            view?.findViewById<View>(R.id.progress2),
+            view?.findViewById<View>(R.id.progress3),
+            view?.findViewById<View>(R.id.progress4)
+        )
+
+        progressViews.forEachIndexed { index, progressView ->
+            progressView?.setBackgroundResource(
+                if (index < currentStep) R.drawable.circle_progress_active
+                else R.drawable.circle_progress_inactive
+            )
+        }
+    }
+    private fun showLoadingOverlay(deviceName: String, status: String) {
+        isConnecting = true
+
+        loadingDeviceName.text = deviceName
+        updateLoadingStatus(status, 1)
+        loadingOverlay.isVisible = true
+
+        // 기존 UI 비활성화 (필요시)
+        btnConnect.isEnabled = false
+        btnRefresh.isEnabled = false
+        rv.isClickable = false
+        etKey.isEnabled = false
+    }
+
+    private fun hideLoadingOverlay() {
+        isConnecting = false
+        loadingOverlay.isVisible = false
+
+        // 기존 UI 활성화
+        updateConnectEnabled()
+        btnRefresh.isEnabled = true
+        rv.isClickable = true
+        etKey.isEnabled = true
+    }
+
+
+
+    private fun cancelConnection() {
+        lifecycleScope.launch {
+            vm.justDisconnect()
+            hideLoadingOverlay()
+            Toast.makeText(requireContext(), "연결이 취소되었습니다.", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     private fun updateConnectEnabled() {
+        if (isConnecting) {
+            btnConnect.isEnabled = false
+            return
+        }
+
         val hasSelection = selectedItem != null
         val keyOk = !etKey.text.isNullOrBlank()
         btnConnect.isEnabled = hasSelection && keyOk
@@ -161,14 +258,15 @@ class BluetoothSearchFragment : Fragment(R.layout.fragment_bluetooth_serarch) {
                         }
                     }
                 }
+
                 launch {
                     vm.devices
                         .map { results ->
                             results
                                 .distinctBy { it.device.address }
                                 .filter { it.rssi > -90 }
-                                .sortedBy { it.device.name ?: it.device.address ?: "" } // 이름순 정렬
-                                .take(4) // 최대 4개만 표시
+                                .sortedBy { it.device.name ?: it.device.address ?: "" }
+                                .take(4)
                                 .map {
                                     MainFragment.DeviceItem(
                                         address = it.device.address ?: "",
@@ -188,27 +286,45 @@ class BluetoothSearchFragment : Fragment(R.layout.fragment_bluetooth_serarch) {
                         Log.d(TAG, "connection state=$st")
                         when (st) {
                             is ConnectionState.Connected -> {
-                                isConnecting = false
-                                updateConnectEnabled()
-//                                if (!hasNavigated && findNavController().previousBackStackEntry != null) {
-//                                    hasNavigated = true
-//                                    if (findNavController().currentDestination?.id == R.id.bluetoothSearchFragment) {
-//                                        findNavController().navigate(R.id.action_search_to_main)
-//                                    }
-//                                }
+                                updateLoadingStatus("연결 완료!", 4)
+                                // 0.5초 후 화면 전환 (성공 메시지 표시 시간)
+                                delay(500)
+                                hideLoadingOverlay()
+
                                 if (findNavController().currentDestination?.id == R.id.bluetoothSearchFragment) {
                                     findNavController().navigate(R.id.action_search_to_versionCheck)
                                 }
+                            }
 
-                            }
                             ConnectionState.Disconnected -> {
-                                isConnecting = false
-                                updateConnectEnabled()
-                                // 필요 시 실패 토스트 등
+                                if (isConnecting) {
+                                    hideLoadingOverlay()
+                                    Toast.makeText(requireContext(), "연결에 실패했습니다.", Toast.LENGTH_SHORT).show()
+                                }
                             }
+
                             ConnectionState.Connecting -> {
-                                // UI에 표시만
+                                updateLoadingStatus("BLE 연결 중...", 2)
                             }
+                        }
+                    }
+                }
+
+                // BleConnector의 세부 상태 모니터링
+                launch {
+                    vm.detailedConnection.collectLatest { detailState ->
+                        if (isConnecting) {
+                            val (statusText, step) = when (detailState) {
+                                DetailedConnectionState.Connecting -> "BLE 연결 중..." to 1
+                                DetailedConnectionState.Connected -> "기기 연결됨" to 2
+                                DetailedConnectionState.ServiceDiscovering -> "서비스 검색 중..." to 2
+                                DetailedConnectionState.ServiceDiscovered -> "서비스 발견 완료" to 3
+                                DetailedConnectionState.DescriptorSetting -> "알림 설정 중..." to 3
+                                DetailedConnectionState.NotificationEnabled -> "인증 준비 중..." to 3
+                                DetailedConnectionState.FullyReady -> "인증 진행 중..." to 4
+                                else -> "연결 중..." to 1
+                            }
+                            updateLoadingStatus(statusText, step)
                         }
                     }
                 }
@@ -218,16 +334,22 @@ class BluetoothSearchFragment : Fragment(R.layout.fragment_bluetooth_serarch) {
 
     override fun onResume() {
         super.onResume()
-        startScan()
+        if (!isConnecting) {
+            startScan()
+        }
     }
 
     override fun onPause() {
         super.onPause()
-        vm.stopScan()
+        if (!isConnecting) {
+            vm.stopScan()
+        }
     }
 
     @SuppressLint("MissingPermission")
     private fun startScan() {
+        if (isConnecting) return
+
         selectedItem = null
         updateConnectEnabled()
         vm.startScan()
