@@ -758,7 +758,7 @@ class BleConnector(private val context: Context) {
                                     Log.e(TAG, "START COMMAND ERROR : START_RESULT_ERR_UNKNOWN")
                                 }
                             }
-
+                            writeCurrentPacket(responsePacket)
                             onBleResponse(HEADER_START_COMMAND, responsePacket[5], responsePacket)
                         }
 
@@ -787,6 +787,7 @@ class BleConnector(private val context: Context) {
                                     Log.e(TAG, "END COMMAND ERROR")
                                 }
                             }
+                            writeCurrentPacket(responsePacket)
                             onBleResponse(HEADER_END_COMMAND, rspCode, responsePacket)
                         }
 

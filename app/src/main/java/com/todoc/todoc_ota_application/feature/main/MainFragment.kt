@@ -177,28 +177,89 @@ class MainFragment : Fragment(R.layout.fragment_main) {
             showScanDialog()
         }
         bind.startCommand.setOnClickListener {
-            viewLifecycleOwner.lifecycleScope.launch {
-                Log.w(TAG, "startCommand")
-                if (!vm.connector.isOtaReady()) {
-                    Log.w(TAG, "GATT 준비 전입니다(서비스/CCCD 미완).")
-                    return@launch
-                }
-                val ok = vm.sendStartCommand()
-                Log.d(TAG, "send HEADER_START_COMMAND result=$ok")
-            }
+            val dialogView = layoutInflater.inflate(R.layout.dialog_select_options, null)
 
+            val rgControlType = dialogView.findViewById<RadioGroup>(R.id.rgControlType)
+            val rgTarget = dialogView.findViewById<RadioGroup>(R.id.rgTarget)
+
+            AlertDialog.Builder(requireContext())
+                .setTitle("Control OP mode")
+                .setView(dialogView)
+                .setPositiveButton("확인") { dialog, _ ->
+                    val selectedControlType = when(rgControlType.checkedRadioButtonId) {
+                        R.id.rbControlType1 -> 0x00
+                        R.id.rbControlType2 -> 0x01
+                        else -> null
+                    }
+                    val selectedTarget = when(rgTarget.checkedRadioButtonId) {
+                        R.id.rbTarget1 -> 0x00
+                        R.id.rbTarget2 -> 0x01
+                        R.id.rbTarget3 -> 0x02
+                        R.id.rbTarget4 -> 0x03
+                        else -> null
+                    }
+
+                    if (selectedControlType != null && selectedTarget != null) {
+                        viewLifecycleOwner.lifecycleScope.launch {
+                            Log.w(TAG, "startCommand")
+                            if (!vm.connector.isOtaReady()) {
+                                Log.w(TAG, "GATT 준비 전입니다(서비스/CCCD 미완).")
+                                return@launch
+                            }
+                            val ok = vm.sendStartCommand(selectedControlType.toByte(), selectedTarget.toByte())
+                            Log.d(TAG, "send HEADER_START_COMMAND result=$ok")
+                        }
+                        dialog.dismiss()
+
+                    } else {
+                        Toast.makeText(requireContext(), "모든 옵션을 선택해주세요", Toast.LENGTH_SHORT).show()
+                    }
+                }
+                .setNegativeButton("취소") { dialog, _ ->
+                    dialog.dismiss()
+                }
+                .create()
+                .show()
         }
 
         bind.endCommand.setOnClickListener {
-            viewLifecycleOwner.lifecycleScope.launch {
-                Log.w(TAG, "endCommand")
-                if (!vm.connector.isOtaReady()) {
-                    Log.w(TAG, "GATT 준비 전입니다(서비스/CCCD 미완).")
-                    return@launch
+            val dialogView = layoutInflater.inflate(R.layout.dialog_select_target, null)
+
+            val rgControlType = dialogView.findViewById<RadioGroup>(R.id.rgTargetType)
+
+            AlertDialog.Builder(requireContext())
+                .setTitle("End OP mode")
+                .setView(dialogView)
+                .setPositiveButton("확인") { dialog, _ ->
+                    val selectedControlType = when(rgControlType.checkedRadioButtonId) {
+                        R.id.rbControlType1 -> 0x00
+                        R.id.rbControlType2 -> 0x01
+                        R.id.rbControlType3 -> 0x02
+                        else -> null
+                    }
+                    if (selectedControlType != null) {
+                        viewLifecycleOwner.lifecycleScope.launch {
+                            Log.w(TAG, "endCommand")
+                            if (!vm.connector.isOtaReady()) {
+                                Log.w(TAG, "GATT 준비 전입니다(서비스/CCCD 미완).")
+                                return@launch
+                            }
+                            val ok = vm.sendEndCommand(selectedControlType.toByte())
+                            Log.d(TAG, "send HEADER_END_COMMAND result=$ok")
+                        }
+                        dialog.dismiss()
+
+                    } else {
+                        Toast.makeText(requireContext(), "모든 옵션을 선택해주세요", Toast.LENGTH_SHORT).show()
+                    }
+
                 }
-                val ok = vm.sendEndCommand()
-                Log.d(TAG, "send HEADER_END_COMMAND result=$ok")
-            }
+                .setNegativeButton("취소") { dialog, _ ->
+                    dialog.dismiss()
+                }
+                .create()
+                .show()
+
 
         }
         bind.infoCommand.setOnClickListener {

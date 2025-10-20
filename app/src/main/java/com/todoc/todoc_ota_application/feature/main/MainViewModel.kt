@@ -316,16 +316,18 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         connector.services.map { it is ServiceState.Ready && connector.isOtaReady() }
             .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
-    suspend fun sendStartCommand(): Boolean {
+    suspend fun sendStartCommand(controlType:Byte, target:Byte): Boolean {
+        val payload = byteArrayOf(controlType,target)
         val packet = packetMaker(
-            PacketInfo.HEADER_START_COMMAND, null, 1
+            PacketInfo.HEADER_START_COMMAND, payload, 3
         )
         return connector.writeOta(packet)
     }
 
-    suspend fun sendEndCommand(): Boolean {
+    suspend fun sendEndCommand(target:Byte): Boolean {
+        val payload = byteArrayOf(target)
         val packet = packetMaker(
-            PacketInfo.HEADER_END_COMMAND, null, 1
+            PacketInfo.HEADER_END_COMMAND, payload, 1
         )
         return connector.writeOta(packet)
     }
@@ -562,7 +564,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                 txQueue.enqueue(it)
             }
 
-//            txQueue.dumpForDebug(tag = "OTA-TXQ")
+//            txQueue.dumpForDebug(tag = "OTA-TXQ")d
 
             _current.value = null
         }
@@ -602,6 +604,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             "endedAt" to null
         )
         val serverTime = FieldValue.serverTimestamp()
+
         db.runBatch { b ->
             b.set(doc, data)
             b.set(
@@ -834,15 +837,13 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             textView.text = content
         } catch (e: Exception) {
             Log.e(TAG, "setTxtFromLatestOtaFolder failed: ${e.localizedMessage}", e)
-            textView.text = "오류: ${e.localizedMessage}"
+            textView.text = "readme 파일이 존재하지 않습니다."
         } finally {
             // Progress 숨기기
             progressBar.visibility = View.GONE
         }
     }
 
-
-    // MainViewModel 안에 추가
 
     data class SlotUiParams(
         val currentBootSlot: Int?,      // 1/2/ null
