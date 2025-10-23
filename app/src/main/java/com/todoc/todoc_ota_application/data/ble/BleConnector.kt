@@ -94,6 +94,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.experimental.and
@@ -125,6 +126,9 @@ class BleConnector(private val context: Context) {
         _packetFlow.value = currentPacket
     }
 
+    fun clearPackets() {
+        _packetFlow.update { emptyList() }
+    }
     private val _otaFileProgress = MutableStateFlow<OtaFileProgress?>(null)
     val otaFileProgress: StateFlow<OtaFileProgress?> = _otaFileProgress
 

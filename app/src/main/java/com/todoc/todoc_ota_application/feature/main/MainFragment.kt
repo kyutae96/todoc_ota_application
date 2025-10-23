@@ -132,6 +132,9 @@ class MainFragment : Fragment(R.layout.fragment_main) {
     }
 
     private fun bindButtons(bind: FragmentMainBinding, nav: NavController) {
+        bind.deleteLogBtn.setOnClickListener {
+            vm.clearPackets()
+        }
         bind.btnHelp.setOnClickListener {
             showTooltip(
                 it,
@@ -199,7 +202,18 @@ class MainFragment : Fragment(R.layout.fragment_main) {
                         else -> null
                     }
 
-                    if (selectedControlType != null && selectedTarget != null) {
+                    if (selectedControlType == 0x00 && selectedTarget == null){
+                        viewLifecycleOwner.lifecycleScope.launch {
+                            Log.w(TAG, "startCommand")
+                            if (!vm.connector.isOtaReady()) {
+                                Log.w(TAG, "GATT 준비 전입니다(서비스/CCCD 미완).")
+                                return@launch
+                            }
+                            val ok = vm.sendStartCommand(selectedControlType.toByte(), 0x00.toByte())
+                            Log.d(TAG, "send HEADER_START_COMMAND result=$ok")
+                        }
+                        dialog.dismiss()
+                    }else if (selectedControlType != null && selectedTarget != null) {
                         viewLifecycleOwner.lifecycleScope.launch {
                             Log.w(TAG, "startCommand")
                             if (!vm.connector.isOtaReady()) {
@@ -232,9 +246,10 @@ class MainFragment : Fragment(R.layout.fragment_main) {
                 .setView(dialogView)
                 .setPositiveButton("확인") { dialog, _ ->
                     val selectedControlType = when(rgControlType.checkedRadioButtonId) {
-                        R.id.rbControlType1 -> 0x00
-                        R.id.rbControlType2 -> 0x01
-                        R.id.rbControlType3 -> 0x02
+                        R.id.rbTarget1 -> 0x00
+                        R.id.rbTarget2 -> 0x01
+                        R.id.rbTarget3 -> 0x02
+                        R.id.rbTarget4 -> 0x03
                         else -> null
                     }
                     if (selectedControlType != null) {
@@ -259,9 +274,8 @@ class MainFragment : Fragment(R.layout.fragment_main) {
                 }
                 .create()
                 .show()
-
-
         }
+
         bind.infoCommand.setOnClickListener {
             viewLifecycleOwner.lifecycleScope.launch {
                 Log.w(TAG, "infoCommand")

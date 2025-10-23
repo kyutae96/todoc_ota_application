@@ -17,28 +17,37 @@
     <RadioGroup
         android:id="@+id/rgTargetType"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp">
+        android:layout_height="wrap_content">
 
         <RadioButton
-            android:id="@+id/rbControlType1"
+            android:id="@+id/rbTarget1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@color/black"
             android:fontFamily="@font/pretendard_regular"
             android:textSize="14dp"
-            android:text="Local"/>
+            android:text="Normal"/>
 
         <RadioButton
-            android:id="@+id/rbControlType2"
+            android:id="@+id/rbTarget2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@color/black"
             android:fontFamily="@font/pretendard_regular"
             android:textSize="14dp"
-            android:text="Peer"/>
+            android:text="Local DFU"/>
+
         <RadioButton
-            android:id="@+id/rbControlType3"
+            android:id="@+id/rbTarget3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/black"
+            android:fontFamily="@font/pretendard_regular"
+            android:textSize="14dp"
+            android:text="Peer DFU"/>
+
+        <RadioButton
+            android:id="@+id/rbTarget4"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@color/black"

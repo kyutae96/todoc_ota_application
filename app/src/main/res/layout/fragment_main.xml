@@ -180,8 +180,8 @@
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal"
                             android:gravity="center"
+                            android:orientation="horizontal"
                             android:paddingHorizontal="8dp">
 
                             <androidx.appcompat.widget.AppCompatCheckBox
@@ -335,8 +335,8 @@
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal"
                             android:gravity="center"
+                            android:orientation="horizontal"
                             android:paddingHorizontal="8dp">
 
                             <androidx.appcompat.widget.AppCompatCheckBox
@@ -413,8 +413,8 @@
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal"
                             android:gravity="center"
+                            android:orientation="horizontal"
                             android:paddingHorizontal="8dp">
 
                             <androidx.appcompat.widget.AppCompatCheckBox
@@ -575,7 +575,6 @@
                 </LinearLayout>
 
 
-
             </LinearLayout>
 
             <LinearLayout
@@ -584,6 +583,7 @@
                 android:layout_marginTop="10dp"
                 android:gravity="center"
                 android:orientation="vertical">
+
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -631,8 +631,8 @@
                         android:gravity="center"
 
                         android:orientation="horizontal"
-                        android:paddingVertical="8dp"
-                        android:paddingHorizontal="16dp">
+                        android:paddingHorizontal="16dp"
+                        android:paddingVertical="8dp">
 
 
                         <TextView
@@ -658,10 +658,10 @@
                         android:id="@+id/layoutManifest"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
                         android:gravity="center"
-                        android:paddingVertical="8dp"
-                        android:paddingHorizontal="16dp">
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="16dp"
+                        android:paddingVertical="8dp">
 
 
                         <LinearLayout
@@ -731,8 +731,8 @@
                         android:layout_height="wrap_content"
                         android:gravity="center"
                         android:orientation="horizontal"
-                        android:paddingVertical="8dp"
-                        android:paddingHorizontal="16dp">
+                        android:paddingHorizontal="16dp"
+                        android:paddingVertical="8dp">
 
 
                         <LinearLayout
@@ -803,10 +803,10 @@
                         android:id="@+id/layoutApp1"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
                         android:gravity="center"
-                        android:paddingVertical="8dp"
-                        android:paddingHorizontal="16dp">
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="16dp"
+                        android:paddingVertical="8dp">
 
 
                         <LinearLayout
@@ -876,11 +876,10 @@
                         android:id="@+id/layoutApp2"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
                         android:gravity="center"
-                        android:paddingVertical="8dp"
-                        android:paddingHorizontal="16dp">
-
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="16dp"
+                        android:paddingVertical="8dp">
 
 
                         <LinearLayout
@@ -988,13 +987,45 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
-                <TextView
-                    android:id="@+id/packetCommand"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:fontFamily="@font/pretendard_regular"
-                    android:textColor="@color/black"
-                    android:textSize="14dp" />
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:fontFamily="@font/pretendard_extrabold"
+                            android:text="log"
+                            android:gravity="center"
+                            android:textColor="@color/black"
+                            android:textSize="16dp" />
+
+                        <ImageButton
+                            android:id="@+id/deleteLogBtn"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/baseline_delete_24"
+                            android:padding="20dp" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/packetCommand"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/pretendard_regular"
+                        android:textColor="@color/black"
+                        android:textSize="14dp" />
+                </LinearLayout>
+
+
             </ScrollView>
 
         </LinearLayout>

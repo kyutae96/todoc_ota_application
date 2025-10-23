@@ -103,6 +103,10 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     val selectState = connector.selectState
     private var previousConnectionState: ConnectionState? = null
 
+    fun clearPackets() {
+        connector.clearPackets()
+    }
+
     fun onOtaResponse(header: Byte, commandId: Byte) {
         txQueue.onResponse(header, commandId)
     }
