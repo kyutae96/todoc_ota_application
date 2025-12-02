@@ -1228,8 +1228,8 @@ class BleConnector(private val context: Context) {
     @SuppressLint("MissingPermission")
     suspend fun writeOta(payload: ByteArray, noResponse: Boolean = true): Boolean {
         // 기기별 쓰기 지연 추가
-        val writeDelay = getWriteDelay()
-        delay(writeDelay)
+//        val writeDelay = getWriteDelay()
+//        delay(writeDelay)
 
         val g = gatt ?: return false
         val tx = otaTx ?: return false

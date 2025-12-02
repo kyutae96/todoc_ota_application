@@ -442,13 +442,13 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             val prepared = mutableListOf<OtaPreparedFile>()
             val operations = mutableListOf<OtaCommand>()
 
-            // 0) START(C0)
+         /*   // 0) START(C0)
             operations += OtaCommand(
                 index = null,
                 targetSlot = slotNum,
                 payload = null,
                 commandType = OtaCommandType.START_COMMAND
-            )
+            )*/
 
             for (t in order) {
                 _current.value = t
@@ -554,13 +554,13 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                 )
             }
 
-            // 5) END(C1)
+       /*     // 5) END(C1)
             operations += OtaCommand(
                 index = null,
                 targetSlot = slotNum,
                 payload = null,
                 commandType = OtaCommandType.END_COMMAND
-            )
+            )*/
 
             // ===== 최종: 한 번에 enqueue =====
             txQueue.clear()

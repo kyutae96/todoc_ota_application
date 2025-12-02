@@ -445,6 +445,8 @@ class MainFragment : Fragment(R.layout.fragment_main) {
                     vm.packetFlow.collect { packets: List<ByteArray> ->
                         bind.packetCommand.text =
                             packets.joinToString("\n") { printLogBytesToString(it) }
+                        bind.packetCommands.text =
+                            packets.takeLast(4).joinToString("\n") { printLogBytesToString(it) }
                     }
                 }
                 /**COLLECT**/

@@ -9,6 +9,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.TooltipCompat
 import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
@@ -119,13 +120,7 @@ class BluetoothSearchFragment : Fragment(R.layout.fragment_bluetooth_serarch) {
                 return@setOnClickListener
             }
 
-            lifecycleScope.launch {
-                vm.justDisconnect()
-                val repo = LocalAuthRepository(requireContext())
-                repo.clearAll()
-                viewModel.logout()
-                nav.navigate(R.id.action_search_to_login)
-            }
+            showLogoutConfirmationDialog()
         }
 
         btnRefresh.setOnClickListener {
@@ -154,6 +149,31 @@ class BluetoothSearchFragment : Fragment(R.layout.fragment_bluetooth_serarch) {
         }
     }
 
+    private fun showLogoutConfirmationDialog() {
+        AlertDialog.Builder(requireContext())
+            .setTitle("로그아웃")
+            .setMessage("로그아웃 하시겠습니까?")
+            .setPositiveButton("확인") { dialog, _ ->
+                dialog.dismiss()
+                performLogout()
+            }
+            .setNegativeButton("취소") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .show()
+    }
+
+    private fun performLogout() {
+        val nav = findNavController()
+        lifecycleScope.launch {
+            vm.justDisconnect()
+            val repo = LocalAuthRepository(requireContext())
+            repo.clearAll()
+            viewModel.logout()
+            nav.navigate(R.id.action_search_to_login)
+        }
+    }
+
     private fun startConnection(item: MainFragment.DeviceItem, key: String) {
         viewLifecycleOwner.lifecycleScope.launch {
             // 전체화면 로딩 시작
@@ -171,6 +191,7 @@ class BluetoothSearchFragment : Fragment(R.layout.fragment_bluetooth_serarch) {
             vm.connectTo(target)
         }
     }
+
     private fun updateLoadingStatus(status: String, step: Int = 1) {
         if (isConnecting) {
             loadingStatusText.text = status
